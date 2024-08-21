@@ -29,15 +29,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ExpressServer = void 0;
 const express_1 = __importDefault(require("express"));
 const config = __importStar(require("../server_config.json"));
+const routes_1 = require("./routes");
+const bodyParser = __importStar(require("body-parser"));
 class ExpressServer {
     static server = null;
     server_config = config;
     constructor() {
         const port = this.server_config.port ?? 3000;
         const app = (0, express_1.default)();
+        app.use(bodyParser.urlencoded({ extended: false }));
+        app.use(bodyParser.json());
         app.get('/ping', (req, res) => {
             res.send('pong');
         });
+        const routes = new routes_1.Routes(app);
+        if (routes) {
+            console.log('Server Routes started for server');
+        }
         ExpressServer.server = app.listen(port, () => {
             console.log(`Server is running on port ${port} with pid = ${process.pid}`);
         });
