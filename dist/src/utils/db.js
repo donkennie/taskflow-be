@@ -26,6 +26,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DatabaseUtil = void 0;
 const typeorm_1 = require("typeorm");
 const config = __importStar(require("../../server_config.json"));
+const roles_entity_1 = require("../components/roles/roles_entity");
+const users_entity_1 = require("../components/users/users_entity");
+const projects_entity_1 = require("../components/projects/projects_entity");
+const tasks_entity_1 = require("../components/tasks/tasks_entity");
+const comments_entity_1 = require("../components/comments/comments_entity");
 class DatabaseUtil {
     server_config = config;
     constructor() {
@@ -41,7 +46,7 @@ class DatabaseUtil {
                 username: db_config.username,
                 password: db_config.password,
                 database: db_config.dbname,
-                entities: [],
+                entities: [roles_entity_1.Roles, users_entity_1.Users, projects_entity_1.Projects, tasks_entity_1.Tasks, comments_entity_1.Comments],
                 synchronize: true,
                 logging: false,
             });
