@@ -33,31 +33,61 @@ const tasks_entity_1 = require("../components/tasks/tasks_entity");
 const comments_entity_1 = require("../components/comments/comments_entity");
 class DatabaseUtil {
     server_config = config;
+    static connection = null;
+    repositories = {};
+    static instance;
     constructor() {
         this.connectDatabase();
     }
-    connectDatabase() {
+    static async getInstance() {
+        if (!DatabaseUtil.instance) {
+            DatabaseUtil.instance = new DatabaseUtil();
+            await DatabaseUtil.instance.connectDatabase();
+        }
+        return DatabaseUtil.instance;
+    }
+    async connectDatabase() {
         try {
-            const db_config = this.server_config.db_config;
-            const AppDataSource = new typeorm_1.DataSource({
-                type: 'postgres',
-                host: db_config.host,
-                port: db_config.port,
-                username: db_config.username,
-                password: db_config.password,
-                database: db_config.dbname,
-                entities: [roles_entity_1.Roles, users_entity_1.Users, projects_entity_1.Projects, tasks_entity_1.Tasks, comments_entity_1.Comments],
-                synchronize: true,
-                logging: false,
-            });
-            AppDataSource.initialize()
-                .then(() => {
+            if (DatabaseUtil.connection) {
+                return DatabaseUtil.connection;
+            }
+            else {
+                const db_config = this.server_config.db_config;
+                const AppSource = new typeorm_1.DataSource({
+                    type: 'postgres',
+                    host: db_config.host,
+                    port: db_config.port,
+                    username: db_config.username,
+                    password: db_config.password,
+                    database: db_config.dbname,
+                    entities: [roles_entity_1.Roles, users_entity_1.Users, projects_entity_1.Projects, tasks_entity_1.Tasks, comments_entity_1.Comments],
+                    synchronize: true,
+                    logging: false,
+                    poolSize: 10
+                });
+                await AppSource.initialize();
+                DatabaseUtil.connection = AppSource;
                 console.log('Connected to the database');
-            })
-                .catch((error) => console.log(error));
+                return DatabaseUtil.connection;
+            }
         }
         catch (error) {
             console.error('Error connecting to the database:', error);
+        }
+    }
+    getRepository(entity) {
+        try {
+            if (DatabaseUtil.connection) {
+                const entityName = entity.name;
+                if (!this.repositories[entityName]) {
+                    this.repositories[entityName] = DatabaseUtil.connection.getRepository(entity);
+                }
+                return this.repositories[entityName];
+            }
+            return null;
+        }
+        catch (error) {
+            console.error(`Error while getRepository => ${error.message}`);
         }
     }
 }

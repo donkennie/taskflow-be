@@ -13,14 +13,30 @@ export class RoleController extends BaseController {
         return;
     }
 
-    public async getAllHandler(req: Request, res: Response) { }
+    public async getAllHandler(req: Request, res: Response): Promise<void> {
+        const service = new RolesService();
+        const result = await service.findAll(req.query);
+        res.status(result.statusCode).json(result);
+    }
 
-    public async getOneHandler(req: Request, res: Response) { }
+    public async getOneHandler(req: Request, res: Response): Promise<void> {
+        const service = new RolesService();
+        const result = await service.findOne(req.params.id);
+        res.status(result.statusCode).json(result);    
+    }
 
-    public async updateHandler(req: Request, res: Response) { }
+    public async updateHandler(req: Request, res: Response) : Promise<void> {
+        const role = req.body;
+        const service = new RolesService();
+        const result = await service.update(req.params.id, role);
+        res.status(result.statusCode).json(result);
+    }
 
-    public async deleteHandler(req: Request, res: Response) { }
-
+    public async deleteHandler(req: Request, res: Response) : Promise<void> {
+        const service = new RolesService();
+        const result = await service.delete(req.params.id);
+        res.status(result.statusCode).json(result);
+    }
 }
 
 export class RolesUtil {
