@@ -1,0 +1,19 @@
+### Create a new Role
+
+POST  http://127.0.0.1:3000/api/roles
+Content-Type: application/json
+
+{
+  "name": "Super Admin",
+  "description": "Having All Rights",
+  "rights": "add_role,edit_role,get_all_roles,get_details_role, delete_role,add_user,edit_user,get_all_users,get_details_user,delete_user,add_project,edit_project,get_all_projects,get_details_project,delete_project,add_task,edit_task,get_all_tasks,get_details_task, delete_task,add_comment,edit_comment,get_all_comments,get_details_comment,delete_comment"
+}
+
+URL : http://127.0.0.1:3000/api/roles
+Method: POST
+body :
+{
+  "name": "Super Admin",
+  "description": "Having All Rights",
+  "rights": "add_role,edit_role,get_all_roles,get_details_role, delete_role,add_user,edit_user,get_all_users,get_details_user,delete_user,add_project,edit_project,get_all_projects,get_details_project,delete_project,add_task,edit_task,get_all_tasks,get_details_task, delete_task,add_comment,edit_comment,get_all_comments,get_details_comment,delete_comment"
+}
