@@ -2,6 +2,7 @@ import { Response, Request } from 'express';
 import { RolesService } from './roles_service';
 import { BaseController } from '../../utils/base_controller';
 import { Rights } from '../../utils/common';
+import { Roles } from './roles_entity';
 
 export class RoleController extends BaseController {
 
@@ -74,26 +75,26 @@ export class RolesUtil {
         return roles.data.length === role_ids.length;
     }
 
-    // public static async getAllRightsFromRoles(role_ids: string[]): Promise<string[]> {
+    public static async getAllRightsFromRoles(role_ids: string[]): Promise<string[]> {
 
-    //     // Create an instance of RolesService to interact with the roles
-    //     const roleService = new RolesService();
+        // Create an instance of RolesService to interact with the roles
+        const roleService = new RolesService();
 
-    //     // Initialize an array to store the collected rights
-    //     let rights: string[] = [];
+        // Initialize an array to store the collected rights
+        let rights: string[] = [];
 
-    //     // Query the database to validate the provided role_ids
-    //     const queryData = await roleService.findByIds(role_ids);
-    //     const roles: Roles[] = queryData.data ? queryData.data : [];
+        // Query the database to validate the provided role_ids
+        const queryData = await roleService.findByIds(role_ids);
+        const roles: Roles[] = queryData.data ? queryData.data : [];
 
-    //     // Extract rights from each role and add them to the rights array
-    //     roles.forEach((role) => {
-    //         const rightFromRole: string[] = role?.rights?.split(',');
-    //         rights = [...new Set(rights.concat(rightFromRole))];
-    //     });
+        // Extract rights from each role and add them to the rights array
+        roles.forEach((role) => {
+            const rightFromRole: string[] = role?.rights?.split(',');
+            rights = [...new Set(rights.concat(rightFromRole))];
+        });
 
-    //     // Return the accumulated rights
-    //     return rights;
+        // Return the accumulated rights
+        return rights;
 
-    // }
+    }
 }

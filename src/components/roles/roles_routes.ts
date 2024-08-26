@@ -2,6 +2,7 @@ import { Express } from 'express';
 import { RoleController, RolesUtil } from './roles_controller';
 import { validate } from '../../utils/validator';
 import { body } from 'express-validator';
+import { authorize } from '../../utils/auth_util';
 
 const validRoleInput = [
     body('name').trim().notEmpty().withMessage('It should be required'),
@@ -29,10 +30,12 @@ export class RoleRoutes {
         const controller = new RoleController();
 
         app.route(this.baseEndPoint)
+            .all(authorize)
             .post(validate(validRoleInput), controller.addHandler)
             .get(controller.getAllHandler);
 
         app.route(this.baseEndPoint + '/:id')
+            .all(authorize)
             .get(controller.getOneHandler)
             .put(validate(validRoleInput), controller.updateHandler)
             .delete(controller.deleteHandler);

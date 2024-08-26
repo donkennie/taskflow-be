@@ -4,7 +4,7 @@ import { SERVER_CONST, bcryptCompare, encryptString } from '../../utils/common';
 import { RolesUtil } from '../roles/roles_controller';
 import { UsersService } from './users_service';
 import * as jwt from 'jsonwebtoken';
-// import { hasPermission } from '../../utils/auth_util';
+import { hasPermission } from '../../utils/auth_util';
 // import { sendMail } from '../../utils/email_util';
 import { Users } from './users_entity';
 import * as config from '../../../server_config.json';
@@ -18,10 +18,10 @@ export class UserController extends BaseController {
     */
    public async addHandler(req: Request, res: Response): Promise<void> {
        
-       // if (!hasPermission(req.user.rights, 'add_user')) {
-        //     res.status(403).json({ statusCode: 403, status: 'error', message: 'Unauthorised' });
-        //     return;
-        // }
+       if (!hasPermission(req.user.rights, 'add_user')) {
+            res.status(403).json({ statusCode: 403, status: 'error', message: 'Unauthorised' });
+            return;
+        }
 
         try {
             // Create an instance of the UsersService
@@ -56,86 +56,74 @@ export class UserController extends BaseController {
         }
     }
 
-    public getAllHandler(req: Request, res: Response): void {
-        throw new Error('Method not implemented.');
+
+    public async getAllHandler(req: Request, res: Response): Promise<void> {
+
+        if (!hasPermission(req.user.rights, 'get_all_users')) {
+            res.status(403).json({ statusCode: 403, status: 'error', message: 'Unauthorised' });
+            return;
+        }
+        const service = new UsersService();
+        const result = await service.findAll(req.query);
+        if (result.statusCode === 200) {
+            // Remove password field to send in response
+            result.data.forEach(i => delete i.password);
+        }
+        res.status(result.statusCode).json(result);
+        return;
     }
-    public getOneHandler(req: Request, res: Response): void {
-        throw new Error('Method not implemented.');
+
+
+    public async getOneHandler(req: Request, res: Response): Promise<void> {
+        if (!hasPermission(req.user.rights, 'get_details_user')) {
+            res.status(403).json({ statusCode: 403, status: 'error', message: 'Unauthorised' });
+            return;
+        }
+        const service = new UsersService();
+        const result = await service.findOne(req.params.id);
+        if (result.statusCode === 200) {
+            delete result.data.password;
+        }
+        res.status(result.statusCode).json(result);
+        return;
+
     }
-    public updateHandler(req: Request, res: Response): void {
-        throw new Error('Method not implemented.');
+
+    public async updateHandler(req: Request, res: Response): Promise<void> {
+
+        if (!hasPermission(req.user.rights, 'edit_user')) {
+            res.status(403).json({ statusCode: 403, status: 'error', message: 'Unauthorised' });
+            return;
+        }
+
+        const service = new UsersService();
+        const user = req.body;
+
+        // we will not update email and username once inserted so remove it from body 
+        delete user?.email;
+        delete user?.username;
+
+        // we will also not update password from here it will be from changePassword function separate
+        delete user?.password;
+
+        const result = await service.update(req.params.id, user);
+        if (result.statusCode === 200) {
+            delete result.data.password;
+        }
+        res.status(result.statusCode).json(result);
+        return;
     }
-    public deleteHandler(req: Request, res: Response): void {
-        throw new Error('Method not implemented.');
+
+    public async deleteHandler(req: Request, res: Response): Promise<void> {
+        if (!hasPermission(req.user.rights, 'delete_user')) {
+            res.status(403).json({ statusCode: 403, status: 'error', message: 'Unauthorised' });
+            return;
+        }
+        const service = new UsersService();
+        const result = await service.delete(req.params.id);
+        res.status(result.statusCode).json(result);
+        return;
     }
-    // public async getAllHandler(req: Request, res: Response): Promise<void> {
-
-    //     if (!hasPermission(req.user.rights, 'get_all_users')) {
-    //         res.status(403).json({ statusCode: 403, status: 'error', message: 'Unauthorised' });
-    //         return;
-    //     }
-    //     const service = new UsersService();
-    //     const result = await service.findAll(req.query);
-    //     if (result.statusCode === 200) {
-    //         // Remove password field to send in response
-    //         result.data.forEach(i => delete i.password);
-    //     }
-    //     res.status(result.statusCode).json(result);
-    //     return;
-    // }
-
-
-    // public async getOneHandler(req: Request, res: Response): Promise<void> {
-    //     if (!hasPermission(req.user.rights, 'get_details_user')) {
-    //         res.status(403).json({ statusCode: 403, status: 'error', message: 'Unauthorised' });
-    //         return;
-    //     }
-    //     const service = new UsersService();
-    //     const result = await service.findOne(req.params.id);
-    //     if (result.statusCode === 200) {
-    //         delete result.data.password;
-    //     }
-    //     res.status(result.statusCode).json(result);
-    //     return;
-
-    // }
-
-    // public async updateHandler(req: Request, res: Response): Promise<void> {
-
-    //     if (!hasPermission(req.user.rights, 'edit_user')) {
-    //         res.status(403).json({ statusCode: 403, status: 'error', message: 'Unauthorised' });
-    //         return;
-    //     }
-
-    //     const service = new UsersService();
-    //     const user = req.body;
-
-    //     // we will not update email and username once inserted so remove it from body 
-    //     delete user?.email;
-    //     delete user?.username;
-
-    //     // we will also not update password from here it will be from changePassword function separate
-    //     delete user?.password;
-
-    //     const result = await service.update(req.params.id, user);
-    //     if (result.statusCode === 200) {
-    //         delete result.data.password;
-    //     }
-    //     res.status(result.statusCode).json(result);
-    //     return;
-    // }
-
-    // public async deleteHandler(req: Request, res: Response): Promise<void> {
-    //     if (!hasPermission(req.user.rights, 'delete_user')) {
-    //         res.status(403).json({ statusCode: 403, status: 'error', message: 'Unauthorised' });
-    //         return;
-    //     }
-    //     const service = new UsersService();
-    //     const result = await service.delete(req.params.id);
-    //     res.status(result.statusCode).json(result);
-    //     return;
-    // }
-
 
     /**
      * Handles user login by checking credentials, generating tokens, and responding with tokens.
@@ -208,41 +196,41 @@ export class UserController extends BaseController {
         });
     }
 
-    // public async changePassword(req: Request, res: Response): Promise<void> {
-    //     const { oldPassword, newPassword } = req.body;
+    public async changePassword(req: Request, res: Response): Promise<void> {
+        const { oldPassword, newPassword } = req.body;
 
-    //     const service = new UsersService();
-    //     const findUserResult = await service.findOne(req.params.id);
-    //     if (findUserResult.statusCode !== 200) {
-    //         res.status(404).send({ statusCode: 404, status: 'error', message: 'User Not Found' });
-    //         return;
-    //     }
-    //     const user = findUserResult.data;
+        const service = new UsersService();
+        const findUserResult = await service.findOne(req.params.id);
+        if (findUserResult.statusCode !== 200) {
+            res.status(404).send({ statusCode: 404, status: 'error', message: 'User Not Found' });
+            return;
+        }
+        const user = findUserResult.data;
 
-    //     // check requested user_id and session user_id is same 
-    //     if (user?.username !== req.user.username) {
-    //         res.status(400).send({ statusCode: 400, status: 'error', message: 'User can change only own password' });
-    //         return;
-    //     }
+        // check requested user_id and session user_id is same 
+        if (user?.username !== req.user.username) {
+            res.status(400).send({ statusCode: 400, status: 'error', message: 'User can change only own password' });
+            return;
+        }
 
-    //     // verify old password is valid 
-    //     const comparePasswords = await bcryptCompare(oldPassword, user.password);
-    //     if (!comparePasswords) {
-    //         res.status(400).json({ statusCode: 400, status: 'error', message: 'oldPassword is not matched' });
-    //         return;
-    //     }
+        // verify old password is valid 
+        const comparePasswords = await bcryptCompare(oldPassword, user.password);
+        if (!comparePasswords) {
+            res.status(400).json({ statusCode: 400, status: 'error', message: 'oldPassword is not matched' });
+            return;
+        }
 
-    //     // Encrypt the user's new password
-    //     user.password = await encryptString(newPassword);
-    //     const result = await service.update(req.params.id, user);
-    //     if (result.statusCode === 200) {
-    //         res.status(200).json({ statusCode: 200, status: 'success', message: 'Password is updated successfully' });
-    //         return;
-    //     } else {
-    //         res.status(result.statusCode).json(result);
-    //         return;
-    //     }
-    // }
+        // Encrypt the user's new password
+        user.password = await encryptString(newPassword);
+        const result = await service.update(req.params.id, user);
+        if (result.statusCode === 200) {
+            res.status(200).json({ statusCode: 200, status: 'success', message: 'Password is updated successfully' });
+            return;
+        } else {
+            res.status(result.statusCode).json(result);
+            return;
+        }
+    }
     // public async forgotPassword(req: Request, res: Response): Promise<void> {
     //     const { email } = req.body;
     //     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -283,45 +271,45 @@ export class UserController extends BaseController {
     //     return;
     // }
 
-    // public async resetPassword(req: Request, res: Response): Promise<void> {
+    public async resetPassword(req: Request, res: Response): Promise<void> {
 
-    //     const { newPassword, token } = req.body;
-    //     const service = new UsersService();
-    //     let email;
+        const { newPassword, token } = req.body;
+        const service = new UsersService();
+        let email;
 
-    //     try {
-    //         const decoded = jwt.verify(token, SERVER_CONST.JWTSECRET);
-    //         if (!decoded) {
-    //             throw new Error('Invalid Reset Token');
-    //         }
-    //         email = decoded['email'];
-    //     } catch (error) {
-    //         res.status(400).json({ statusCode: 400, status: 'error', message: 'Reset Token is invalid or expired' }).end();
-    //         return;
-    //     }
+        try {
+            const decoded = jwt.verify(token, SERVER_CONST.JWTSECRET);
+            if (!decoded) {
+                throw new Error('Invalid Reset Token');
+            }
+            email = decoded['email'];
+        } catch (error) {
+            res.status(400).json({ statusCode: 400, status: 'error', message: 'Reset Token is invalid or expired' }).end();
+            return;
+        }
 
-    //     try {
-    //         const user = await UsersUtil.getUserByEmail(email);
-    //         if (!user) {
-    //             res.status(404).json({ statusCode: 404, status: 'error', message: 'User not found' }).end();
-    //             return;
-    //         }
+        try {
+            const user = await UsersUtil.getUserByEmail(email);
+            if (!user) {
+                res.status(404).json({ statusCode: 404, status: 'error', message: 'User not found' }).end();
+                return;
+            }
 
-    //         // Encrypt the user's new password
-    //         user.password = await encryptString(newPassword);
-    //         const result = await service.update(user.user_id, user);
+            // Encrypt the user's new password
+            user.password = await encryptString(newPassword);
+            const result = await service.update(user.user_id, user);
 
-    //         if (result.statusCode === 200) {
-    //             res.status(200).json({ statusCode: 200, status: 'success', message: 'Password updated successfully' });
-    //         } else {
-    //             res.status(result.statusCode).json(result).end();
-    //         }
-    //     } catch (error) {
-    //         console.error(`Error while resetPassword => ${error.message}`);
-    //         res.status(500).json({ statusCode: 500, status: 'error', message: 'Internal Server error' }).end();
-    //     }
+            if (result.statusCode === 200) {
+                res.status(200).json({ statusCode: 200, status: 'success', message: 'Password updated successfully' });
+            } else {
+                res.status(result.statusCode).json(result).end();
+            }
+        } catch (error) {
+            console.error(`Error while resetPassword => ${error.message}`);
+            res.status(500).json({ statusCode: 500, status: 'error', message: 'Internal Server error' }).end();
+        }
 
-    // }
+    }
 }
 
 export class UsersUtil {
