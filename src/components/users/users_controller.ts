@@ -5,7 +5,7 @@ import { RolesUtil } from '../roles/roles_controller';
 import { UsersService } from './users_service';
 import * as jwt from 'jsonwebtoken';
 import { hasPermission } from '../../utils/auth_util';
-// import { sendMail } from '../../utils/email_util';
+import { sendMail } from '../../utils/email_util';
 import { Users } from './users_entity';
 import * as config from '../../../server_config.json';
 
@@ -231,45 +231,45 @@ export class UserController extends BaseController {
             return;
         }
     }
-    // public async forgotPassword(req: Request, res: Response): Promise<void> {
-    //     const { email } = req.body;
-    //     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    //     if (!emailPattern.test(email)) {
-    //         res.status(400).send({ statusCode: 400, status: 'error', message: 'Invalid email' });
-    //         return;
-    //     }
-    //     const user: Users = await UsersUtil.getUserByEmail(email);
-    //     if (!user) {
-    //         res.status(404).send({ statusCode: 404, status: 'error', message: 'User Not Found' });
-    //         return;
-    //     }
-    //     // Generate a reset token for the user
-    //     const resetToken: string = jwt.sign({ email: user.email }, SERVER_CONST.JWTSECRET, {
-    //         expiresIn: '1h',
-    //     });
+    public async forgotPassword(req: Request, res: Response): Promise<void> {
+        const { email } = req.body;
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(email)) {
+            res.status(400).send({ statusCode: 400, status: 'error', message: 'Invalid email' });
+            return;
+        }
+        const user: Users = await UsersUtil.getUserByEmail(email);
+        if (!user) {
+            res.status(404).send({ statusCode: 404, status: 'error', message: 'User Not Found' });
+            return;
+        }
+        // Generate a reset token for the user
+        const resetToken: string = jwt.sign({ email: user.email }, SERVER_CONST.JWTSECRET, {
+            expiresIn: '1h',
+        });
 
-    //     // Generate the reset link
-    //     const resetLink = `${config.front_app_url}/reset-password?token=${resetToken}`;
-    //     const mailOptions = {
-    //         to: email,
-    //         subject: 'Password Reset',
-    //         html: ` Hello ${user.username},<p>We received a request to reset your password. If you didn't initiate this request, please ignore this email.</p>
-    //        <p>To reset your password, please click the link below:</p>
-    //        <p><a href="${resetLink}" style="background-color: #007bff; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 5px; display: inline-block;">Reset Password</a></p>
-    //        <p>If the link doesn't work, you can copy and paste the following URL into your browser:</p>
-    //        <p>${resetLink}</p>
-    //        <p>This link will expire in 1 hour for security reasons.</p>
-    //        <p>If you didn't request a password reset, you can safely ignore this email.</p>
-    //        <p>Best regards,<br>PMS Team</p>`,
-    //     };
-    //     const emailStatus = await sendMail(mailOptions.to, mailOptions.subject, mailOptions.html);
-    //     if (emailStatus) {
-    //         res.status(200).json({ statusCode: 200, status: 'success', message: 'Reset Link sent on your mailId', data: { 'resetToken': resetToken } });
-    //     } else {
-    //         res.status(400).json({ statusCode: 400, status: 'error', message: 'something went wrong try again' });
-    //     }
-    //     return;
-    // }
+        // Generate the reset link
+        const resetLink = `${config.front_app_url}/reset-password?token=${resetToken}`;
+        const mailOptions = {
+            to: email,
+            subject: 'Password Reset',
+            html: ` Hello ${user.username},<p>We received a request to reset your password. If you didn't initiate this request, please ignore this email.</p>
+           <p>To reset your password, please click the link below:</p>
+           <p><a href="${resetLink}" style="background-color: #007bff; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 5px; display: inline-block;">Reset Password</a></p>
+           <p>If the link doesn't work, you can copy and paste the following URL into your browser:</p>
+           <p>${resetLink}</p>
+           <p>This link will expire in 1 hour for security reasons.</p>
+           <p>If you didn't request a password reset, you can safely ignore this email.</p>
+           <p>Best regards,<br>PMS Team</p>`,
+        };
+        const emailStatus = await sendMail(mailOptions.to, mailOptions.subject, mailOptions.html);
+        if (emailStatus) {
+            res.status(200).json({ statusCode: 200, status: 'success', message: 'Reset Link sent on your mailId', data: { 'resetToken': resetToken } });
+        } else {
+            res.status(400).json({ statusCode: 400, status: 'error', message: 'something went wrong try again' });
+        }
+        return;
+    }
 
     public async resetPassword(req: Request, res: Response): Promise<void> {
 
