@@ -56,3 +56,4 @@ __decorate([
 exports.Comments = Comments = __decorate([
     (0, typeorm_1.Entity)()
 ], Comments);
+//# sourceMappingURL=comments_entity.js.map

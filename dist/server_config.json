@@ -8,6 +8,12 @@
         "port": 5432,
         "dbname": "taskflow"
     },
+    "email_config": {
+        "from": "ajeigbekehinde160@gmail.com",
+        "user": "ajeigbekehindeowooluwa@gmail.com",
+        "password": "ggwi nmur ihkb mess"
+    },
+    "front_app_url": "http://127.0.0.1:5000",
     "default_user": {
         "email": "superadmin@pms.com",
         "password": "superAdmin"

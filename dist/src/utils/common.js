@@ -81,3 +81,4 @@ exports.SERVER_CONST = {
     ACCESS_TOKEN_EXPIRY_TIME_SECONDS: 1 * 8 * 60 * 60,
     REFRESH_TOKEN_EXPIRY_TIME_SECONDS: 5 * 7 * 24 * 60 * 60,
 };
+//# sourceMappingURL=common.js.map

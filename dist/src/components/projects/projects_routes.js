@@ -16,3 +16,4 @@ class ProjectRoutes {
     }
 }
 exports.ProjectRoutes = ProjectRoutes;
+//# sourceMappingURL=projects_routes.js.map

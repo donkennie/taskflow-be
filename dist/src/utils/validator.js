@@ -18,3 +18,4 @@ const validate = (validations) => {
     };
 };
 exports.validate = validate;
+//# sourceMappingURL=validator.js.map

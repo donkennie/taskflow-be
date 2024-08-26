@@ -12,3 +12,4 @@ class RolesService extends base_service_1.BaseService {
     }
 }
 exports.RolesService = RolesService;
+//# sourceMappingURL=roles_service.js.map

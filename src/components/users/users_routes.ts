@@ -61,8 +61,8 @@ export class UserRoutes {
             .all(authorize)
             .post(validate(validChangePassword), controller.changePassword);
 
-        // app.route('/api/forgot_password')
-        //     .post(controller.forgotPassword);
+        app.route('/api/forgot_password')
+            .post(controller.forgotPassword);
 
         app.route('/api/reset_password')
             .post(validate(validResetPassword), controller.resetPassword);

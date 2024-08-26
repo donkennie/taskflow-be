@@ -14,3 +14,4 @@ class CommentController {
     }
 }
 exports.CommentController = CommentController;
+//# sourceMappingURL=comments_controller.js.map

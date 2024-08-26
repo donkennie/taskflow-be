@@ -16,3 +16,4 @@ class CommentRoutes {
     }
 }
 exports.CommentRoutes = CommentRoutes;
+//# sourceMappingURL=comments_routes.js.map

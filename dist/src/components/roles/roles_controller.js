@@ -52,5 +52,17 @@ class RolesUtil {
         const roles = await roleService.findByIds(role_ids);
         return roles.data.length === role_ids.length;
     }
+    static async getAllRightsFromRoles(role_ids) {
+        const roleService = new roles_service_1.RolesService();
+        let rights = [];
+        const queryData = await roleService.findByIds(role_ids);
+        const roles = queryData.data ? queryData.data : [];
+        roles.forEach((role) => {
+            const rightFromRole = role?.rights?.split(',');
+            rights = [...new Set(rights.concat(rightFromRole))];
+        });
+        return rights;
+    }
 }
 exports.RolesUtil = RolesUtil;
+//# sourceMappingURL=roles_controller.js.map

@@ -14,3 +14,4 @@ class ProjectController {
     }
 }
 exports.ProjectController = ProjectController;
+//# sourceMappingURL=projects_controller.js.map

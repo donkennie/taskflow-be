@@ -52,3 +52,4 @@ else {
         server.closeServer();
     });
 }
+//# sourceMappingURL=main.js.map

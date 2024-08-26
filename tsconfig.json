@@ -3,7 +3,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "pretty": true,
-    "sourceMap": false,
+    "sourceMap": true,
     "target": "ESNext",
     "outDir": "./dist",
     "baseUrl": "./src",

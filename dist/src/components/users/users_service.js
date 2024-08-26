@@ -12,3 +12,4 @@ class UsersService extends base_service_1.BaseService {
     }
 }
 exports.UsersService = UsersService;
+//# sourceMappingURL=users_service.js.map
