@@ -328,6 +328,18 @@ export class UsersUtil {
         }
         return null;
     }
+
+    public static async checkValidUserIds(user_ids: string[]) {
+        const userService = new UsersService();
+
+        // Query the database to check if all user_ids are valid
+        const users = await userService.findByIds(user_ids);
+        console.log(users);
+
+        // Check if all user_ids are found in the database
+        return users.data.length === user_ids.length;
+    }
+
     public static async getUserByEmail(email: string) {
         try {
             if (email) {
@@ -342,6 +354,24 @@ export class UsersUtil {
             console.error(`Error while getUserFromToken() => ${error.message}`);
         }
         return null;
+    }
+
+    public static async getUsernamesById(user_ids: string[]) {
+        const userService = new UsersService();
+
+        // Query the database to check if all user_ids are valid
+        const queryResult = await userService.findByIds(user_ids);
+        if (queryResult.statusCode === 200) {
+            const users = queryResult.data;
+            const usernames = users.map((i) => {
+                return {
+                    'username': i.username,
+                    'user_id': i.user_id
+                };
+            });
+            return usernames;
+        }
+        return [];
     }
 
 }
