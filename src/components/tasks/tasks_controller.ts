@@ -4,6 +4,8 @@ import { BaseController } from '../../utils/base_controller';
 import { TasksService } from './tasks_service';
 import { UsersUtil } from '../users/users_controller';
 import { ProjectsUtil } from '../projects/projects_controller';
+import { NotificationUtil } from '../../utils/notification_util';
+import { Tasks } from './tasks_entity';
 
 export class TaskController extends BaseController {
 
@@ -25,8 +27,13 @@ export class TaskController extends BaseController {
             // Extract task data from the request body
             const task = req.body;
 
+
+            // Get the project
+            const project = await ProjectsUtil.getProjectByProjectId(task.project_id);
+
             //check if the provided project_id is valid
-            const isValidProject = await ProjectsUtil.checkValidProjectIds([task.project_id]);
+            const isValidProject = project ? true : false;
+
             if (!isValidProject) {
                 // If user_ids are invalid, send an error response
                 res.status(400).json({ statusCode: 400, status: 'error', message: 'Invalid project_id' });
@@ -42,9 +49,12 @@ export class TaskController extends BaseController {
                 return;
             }
 
-            // If user_ids are valid, create the user
+            // If user_ids are valid, create the task
             const createdTask = await service.create(task);
             res.status(201).json(createdTask);
+
+            // Notify the users of the project that a new task has been created
+            await TaskUtil.notifyUsers(project, task, 'add');
 
         } catch (error) {
             // Handle errors and send an appropriate response
@@ -62,6 +72,7 @@ export class TaskController extends BaseController {
 
         const service = new TasksService();
         const result = await service.findAll(req.query);
+        const tasks: Tasks[] = result.data;
         res.status(result.statusCode).json(result);
 
     }
@@ -97,6 +108,59 @@ export class TaskController extends BaseController {
 
     }
 
+
+
+}
+
+export class TaskUtil {
+
+    // Notify the users of the project that a change
+    public static async notifyUsers(project, task, action) {
+        if (project) {
+            const userIds = project.user_ids;
+
+            let subject = '';
+            let body = '';
+            if (action === 'add') {
+                subject = 'New Task Created';
+                body = `A new task has been created with the title ${task.title} and description ${task.description}`;
+            } else if (action === 'update') {
+                subject = 'Task Updated';
+                body = `A task has been updated with the title ${task.title} and description ${task.description}`;
+            } else if (action === 'delete') {
+                subject = 'Task Deleted';
+                body = `A task has been deleted with the title ${task.title} and description ${task.description}`;
+            }
+
+
+            for (const userId of userIds) {
+                const user = await UsersUtil.getUserById(userId);
+                if (user) {
+                    await NotificationUtil.enqueueEmail(
+                        user.email,
+                        subject,
+                        body
+                    );
+                }
+            }
+        }
+    }
+
+    public static async notifyUsers_(project, task, newTask = true) {
+        if (project) {
+            const userIds = project.user_ids;
+            for (const userId of userIds) {
+                const user = await UsersUtil.getUserById(userId);
+                if (user) {
+                    await NotificationUtil.enqueueEmail(
+                        user.email,
+                        newTask ? 'New Task Created' : 'Task Updated',
+                        newTask ? `A new task has been created with the title ${task.title} and description ${task.description}` : `A task has been updated with the title ${task.title} and description ${task.description}`
+                    );
+                }
+            }
+        }
+    }
 
 
 }

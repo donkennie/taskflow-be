@@ -9,6 +9,8 @@ const numCPUs = os_1.default.cpus().length;
 const express_server_1 = require("./express_server");
 const db_1 = require("./utils/db");
 const ddl_util_1 = require("./utils/ddl_util");
+const cache_util_1 = require("./utils/cache_util");
+const users_controller_1 = require("./components/users/users_controller");
 const args = process.argv.slice(2);
 if (cluster_1.default.isPrimary) {
     console.log(`Master process PID: ${process.pid}`);
@@ -35,6 +37,10 @@ if (cluster_1.default.isPrimary) {
 else {
     const server = new express_server_1.ExpressServer();
     new db_1.DatabaseUtil();
+    new cache_util_1.CacheUtil();
+    setTimeout(() => {
+        users_controller_1.UsersUtil.putAllUsersInCache();
+    }, 1000 * 10);
     process.on('uncaughtException', (error) => {
         console.error(`Uncaught exception in worker process ${process.pid}:`, error);
         server.closeServer();

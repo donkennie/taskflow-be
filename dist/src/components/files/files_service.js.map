@@ -1,0 +1,1 @@
+{"version":3,"file":"files_service.js","sourceRoot":"","sources":["../../../../src/components/files/files_service.ts"],"names":[],"mappings":";;;AAEA,2DAAuD;AACvD,uCAA8C;AAC9C,iDAAuC;AAGvC,MAAa,YAAa,SAAQ,0BAAkB;IAChD;QACI,IAAI,eAAe,GAA6B,IAAI,CAAC;QACrD,eAAe,GAAG,IAAI,iBAAY,EAAE,CAAC,aAAa,CAAC,oBAAK,CAAC,CAAC;QAC1D,KAAK,CAAC,eAAe,CAAC,CAAC;IAE3B,CAAC;CACJ;AAPD,oCAOC"}

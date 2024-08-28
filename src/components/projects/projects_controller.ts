@@ -106,4 +106,11 @@ export class ProjectsUtil {
         // Check if all project_ids are found in the database
         return projects.data.length === project_ids.length;
     }
+
+    
+    public static async getProjectByProjectId(project_id: string) {
+        const projectService = new ProjectsService();
+        const project = await projectService.findOne(project_id);
+        return project.data;
+    }
 } 

@@ -32,6 +32,7 @@ const jwt = __importStar(require("jsonwebtoken"));
 const auth_util_1 = require("../../utils/auth_util");
 const email_util_1 = require("../../utils/email_util");
 const config = __importStar(require("../../../server_config.json"));
+const cache_util_1 = require("../../utils/cache_util");
 class UserController extends base_controller_1.BaseController {
     async addHandler(req, res) {
         if (!(0, auth_util_1.hasPermission)(req.user.rights, 'add_user')) {
@@ -41,7 +42,7 @@ class UserController extends base_controller_1.BaseController {
         try {
             const service = new users_service_1.UsersService();
             const user = req.body;
-            const isValidRole = await roles_controller_1.RolesUtil.checkValidRoleIds(user.role_ids);
+            const isValidRole = await roles_controller_1.RolesUtil.checkValidRoleIds([user.role_id]);
             if (!isValidRole) {
                 res.status(400).json({ statusCode: 400, status: 'error', message: 'Invalid role_ids' });
                 return;
@@ -75,13 +76,21 @@ class UserController extends base_controller_1.BaseController {
             res.status(403).json({ statusCode: 403, status: 'error', message: 'Unauthorised' });
             return;
         }
-        const service = new users_service_1.UsersService();
-        const result = await service.findOne(req.params.id);
-        if (result.statusCode === 200) {
-            delete result.data.password;
+        const userFromCache = await cache_util_1.CacheUtil.get('User', req.params.id);
+        if (userFromCache) {
+            res.status(200).json({ statusCode: 200, status: 'success', data: userFromCache });
+            return;
         }
-        res.status(result.statusCode).json(result);
-        return;
+        else {
+            const service = new users_service_1.UsersService();
+            const result = await service.findOne(req.params.id);
+            if (result.statusCode === 200) {
+                delete result.data.password;
+                cache_util_1.CacheUtil.set('User', req.params.id, result.data);
+            }
+            res.status(result.statusCode).json(result);
+            return;
+        }
     }
     async updateHandler(req, res) {
         if (!(0, auth_util_1.hasPermission)(req.user.rights, 'edit_user')) {
@@ -107,6 +116,7 @@ class UserController extends base_controller_1.BaseController {
         }
         const service = new users_service_1.UsersService();
         const result = await service.delete(req.params.id);
+        cache_util_1.CacheUtil.remove('User', req.params.id);
         res.status(result.statusCode).json(result);
         return;
     }
@@ -253,6 +263,21 @@ class UserController extends base_controller_1.BaseController {
 }
 exports.UserController = UserController;
 class UsersUtil {
+    static async putAllUsersInCache() {
+        const userService = new users_service_1.UsersService();
+        const result = await userService.findAll({});
+        if (result.statusCode === 200) {
+            const users = result.data;
+            users.forEach(i => {
+                cache_util_1.CacheUtil.set('User', i.user_id, i);
+            });
+            console.log(`All users are put in cache`);
+        }
+        else {
+            console.log(`Error while putAllUsersInCache() => ${result.message}`);
+            console.log(result);
+        }
+    }
     static async getUserFromUsername(username) {
         try {
             if (username) {
@@ -280,6 +305,35 @@ class UsersUtil {
         }
         catch (error) {
             console.error(`Error while getUserFromToken() => ${error.message}`);
+        }
+        return null;
+    }
+    static async checkValidUserIds(user_ids) {
+        const userService = new users_service_1.UsersService();
+        const users = await userService.findByIds(user_ids);
+        return users.data.length === user_ids.length;
+    }
+    static async getUsernamesById(user_ids) {
+        const userService = new users_service_1.UsersService();
+        const queryResult = await userService.findByIds(user_ids);
+        if (queryResult.statusCode === 200) {
+            const users = queryResult.data;
+            const usernames = users.map((i) => {
+                return {
+                    'username': i.username,
+                    'user_id': i.user_id
+                };
+            });
+            return usernames;
+        }
+        return [];
+    }
+    static async getUserById(user_id) {
+        const userService = new users_service_1.UsersService();
+        const queryResult = await userService.findOne(user_id);
+        if (queryResult.statusCode === 200) {
+            const user = queryResult.data;
+            return user;
         }
         return null;
     }

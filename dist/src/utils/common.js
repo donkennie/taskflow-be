@@ -22,9 +22,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SERVER_CONST = exports.bcryptCompare = exports.encryptString = exports.Rights = void 0;
+exports.checkValidDate = exports.SERVER_CONST = exports.bcryptCompare = exports.encryptString = exports.Rights = void 0;
 const bcrypt = __importStar(require("bcrypt"));
+const moment_1 = __importDefault(require("moment"));
 exports.Rights = {
     ROLES: {
         ADD: 'add_role',
@@ -81,4 +85,11 @@ exports.SERVER_CONST = {
     ACCESS_TOKEN_EXPIRY_TIME_SECONDS: 1 * 8 * 60 * 60,
     REFRESH_TOKEN_EXPIRY_TIME_SECONDS: 5 * 7 * 24 * 60 * 60,
 };
+const checkValidDate = function (value) {
+    if (!(0, moment_1.default)(value, 'YYYY-MM-DD HH:mm:ss', true).isValid()) {
+        return false;
+    }
+    return true;
+};
+exports.checkValidDate = checkValidDate;
 //# sourceMappingURL=common.js.map
