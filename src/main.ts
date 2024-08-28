@@ -4,6 +4,8 @@ const numCPUs = os.cpus().length;
 import { ExpressServer } from './express_server';
 import { DatabaseUtil } from './utils/db';
 import { DDLUtil } from './utils/ddl_util';
+import { CacheUtil } from './utils/cache_util';
+import { UsersUtil } from './components/users/users_controller';
 const args = process.argv.slice(2);
 
 if (cluster.isPrimary) {
@@ -31,6 +33,15 @@ if (cluster.isPrimary) {
     // connect the express server 
     const server = new ExpressServer();
     new DatabaseUtil();
+
+    // initialise the cache utility
+    new CacheUtil();
+
+    // Proactive cache update
+    setTimeout(() => {
+        UsersUtil.putAllUsersInCache();
+    }, 1000 * 10);
+    
     process.on('uncaughtException', (error: Error) => {
         console.error(`Uncaught exception in worker process ${process.pid}:`, error);
 

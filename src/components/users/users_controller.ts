@@ -8,17 +8,18 @@ import { hasPermission } from '../../utils/auth_util';
 import { sendMail } from '../../utils/email_util';
 import { Users } from './users_entity';
 import * as config from '../../../server_config.json';
+import { CacheUtil } from '../../utils/cache_util';
 
 export class UserController extends BaseController {
-    
+
     /**
      * Handles the addition of a new user.
      * @param {object} req - The request object.
      * @param {object} res - The response object.
-    */
-   public async addHandler(req: Request, res: Response): Promise<void> {
-       
-       if (!hasPermission(req.user.rights, 'add_user')) {
+     */
+    public async addHandler(req: Request, res: Response): Promise<void> {
+
+        if (!hasPermission(req.user.rights, 'add_user')) {
             res.status(403).json({ statusCode: 403, status: 'error', message: 'Unauthorised' });
             return;
         }
@@ -31,7 +32,7 @@ export class UserController extends BaseController {
             const user = req.body;
 
             // Check if the provided role_ids are valid
-            const isValidRole = await RolesUtil.checkValidRoleIds(user.role_ids);
+            const isValidRole = await RolesUtil.checkValidRoleIds([user.role_id]);
 
             if (!isValidRole) {
                 // If role_ids are invalid, send an error response
@@ -56,7 +57,6 @@ export class UserController extends BaseController {
         }
     }
 
-
     public async getAllHandler(req: Request, res: Response): Promise<void> {
 
         if (!hasPermission(req.user.rights, 'get_all_users')) {
@@ -79,14 +79,24 @@ export class UserController extends BaseController {
             res.status(403).json({ statusCode: 403, status: 'error', message: 'Unauthorised' });
             return;
         }
-        const service = new UsersService();
-        const result = await service.findOne(req.params.id);
-        if (result.statusCode === 200) {
-            delete result.data.password;
-        }
-        res.status(result.statusCode).json(result);
-        return;
 
+        // check user is in cache
+        const userFromCache = await CacheUtil.get('User', req.params.id);
+        if (userFromCache) {
+            res.status(200).json({ statusCode: 200, status: 'success', data: userFromCache });
+            return;
+        } else {
+            // get user from db
+            const service = new UsersService();
+            const result = await service.findOne(req.params.id);
+            if (result.statusCode === 200) {
+                delete result.data.password;
+                // set user in cache
+                CacheUtil.set('User', req.params.id, result.data);
+            }
+            res.status(result.statusCode).json(result);
+            return;
+        }
     }
 
     public async updateHandler(req: Request, res: Response): Promise<void> {
@@ -121,9 +131,14 @@ export class UserController extends BaseController {
         }
         const service = new UsersService();
         const result = await service.delete(req.params.id);
+
+        // remove user from cache
+        CacheUtil.remove('User', req.params.id);
+
         res.status(result.statusCode).json(result);
         return;
     }
+
 
     /**
      * Handles user login by checking credentials, generating tokens, and responding with tokens.
@@ -313,6 +328,23 @@ export class UserController extends BaseController {
 }
 
 export class UsersUtil {
+
+    // function to put all users in cache
+    public static async putAllUsersInCache() {
+        const userService = new UsersService();
+        const result = await userService.findAll({});
+        if (result.statusCode === 200) {
+            const users = result.data;
+            users.forEach(i => {
+                CacheUtil.set('User', i.user_id, i);
+            });
+            console.log(`All users are put in cache`);
+        } else {
+            console.log(`Error while putAllUsersInCache() => ${result.message}`);
+            console.log(result);
+        }
+    }
+
     public static async getUserFromUsername(username: string) {
         try {
             if (username) {
@@ -328,18 +360,6 @@ export class UsersUtil {
         }
         return null;
     }
-
-    public static async checkValidUserIds(user_ids: string[]) {
-        const userService = new UsersService();
-
-        // Query the database to check if all user_ids are valid
-        const users = await userService.findByIds(user_ids);
-        console.log(users);
-
-        // Check if all user_ids are found in the database
-        return users.data.length === user_ids.length;
-    }
-
     public static async getUserByEmail(email: string) {
         try {
             if (email) {
@@ -356,6 +376,15 @@ export class UsersUtil {
         return null;
     }
 
+    public static async checkValidUserIds(user_ids: string[]) {
+        const userService = new UsersService();
+
+        // Query the database to check if all user_ids are valid
+        const users = await userService.findByIds(user_ids);
+
+        // Check if all user_ids are found in the database
+        return users.data.length === user_ids.length;
+    }
     public static async getUsernamesById(user_ids: string[]) {
         const userService = new UsersService();
 
@@ -372,6 +401,17 @@ export class UsersUtil {
             return usernames;
         }
         return [];
+
     }
 
+    public static async getUserById(user_id: string) {
+        const userService = new UsersService();
+
+        const queryResult = await userService.findOne(user_id);
+        if (queryResult.statusCode === 200) {
+            const user = queryResult.data;
+            return user;
+        }
+        return null;
+    }
 }
