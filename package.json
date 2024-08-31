@@ -39,6 +39,7 @@
     "and": "^0.0.3",
     "body-parser": "^1.20.2",
     "chai": "^5.1.1",
+    "chai-http": "^5.0.0",
     "eslint": "^9.9.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin": "^1.0.1",
